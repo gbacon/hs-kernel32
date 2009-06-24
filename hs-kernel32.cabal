@@ -1,0 +1,23 @@
+Name:          hs-kernel32
+Version:       0.0
+Cabal-Version: >=1.2
+Build-Type:    Simple
+
+flag test
+  description: Build test program.
+  default:     False
+
+Library
+  hs-source-dirs:  src
+  exposed-modules: Win32.Kernel32
+  build-depends:   base, Win32
+  extensions:      ForeignFunctionInterface
+  ghc-options:     -Wall
+
+Executable test
+  hs-source-dirs:  src, test
+  other-modules:   Win32.Kernel32
+  main-is:         Main.hs
+  build-depends:   base
+  if !flag(test)
+    buildable:     False

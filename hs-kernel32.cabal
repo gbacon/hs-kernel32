@@ -1,7 +1,7 @@
 Name:          hs-kernel32
 Version:       0.0
 Cabal-Version: >=1.2
-Build-Type:    Simple
+Build-Type:    Custom
 
 flag test
   description: Build test program.

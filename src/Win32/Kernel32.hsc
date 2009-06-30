@@ -2,7 +2,7 @@
 
 module Win32.Kernel32 (getComputerName) where
 
-import Control.Monad (when)
+import Control.Monad (when, unless)
 import Data.Bits ((.|.))
 import Foreign.Marshal.Alloc (alloca)
 import Foreign.Ptr (nullPtr)
@@ -29,19 +29,19 @@ foreign import stdcall unsafe "FormatMessageW"
                       -> IO DWORD
 
 getComputerName :: IO String
-getComputerName = do
+getComputerName =
   withTString maxBuf $
-    \buf -> do
+    \buf ->
       alloca $ \len -> do
         poke len (fromIntegral maxLength)
 
         success <- win32_getComputerName buf len
-        when (not success) $ failWithLastError "GetComputerName"
+        unless success $ failWithLastError "GetComputerName"
 
         len' <- peek len
         peekTStringLen (buf, (fromIntegral len'))
   where
-    maxBuf = take maxLength $ repeat '\0'
+    maxBuf = replicate maxLength '\0'
     maxLength = #const MAX_COMPUTERNAME_LENGTH
 
 failWithLastError :: String -> IO a
@@ -58,13 +58,13 @@ failWithLastError name = do
                                     nullPtr
       fmtcode <- win32_getLastError
       when (gotmsg == 0) $
-        fail $ name ++ " failed: " ++ (show (code, fmtcode))
+        fail $ name ++ " failed: " ++ show (code, fmtcode)
 
       msg <- peekTString buf
       fail $ name ++ ": " ++ filter notEOL msg
   where
+    errbuf = replicate errlen '\0'
     errlen = 300
-    errbuf = take errlen $ repeat '\0'
     flags = #const FORMAT_MESSAGE_FROM_SYSTEM
             .|.
             #const FORMAT_MESSAGE_IGNORE_INSERTS
